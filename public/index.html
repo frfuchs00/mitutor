@@ -72,6 +72,12 @@
 
       const data = await response.json();
       document.getElementById('typing').style.display = 'none';
+
+      if (!data.reply || typeof data.reply !== 'string') {
+        appendMessage('bot', '[Error: respuesta inválida del servidor]');
+        return;
+      }
+
       appendMessage('bot', data.reply);
       chatHistory.push({ role: 'assistant', content: data.reply });
     }

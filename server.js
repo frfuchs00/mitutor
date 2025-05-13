@@ -13,16 +13,17 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 app.post('/chat', async (req, res) => {
 
 
-  const { message: userMessage, prompt, tema } = req.body;
+  const { messages, prompt, tema } = req.body;
 
 const finalPrompt = `${prompt}\nEl tema actual es: ${tema}.`;
+const cleanMessages = messages.filter(msg => msg.content && typeof msg.content === 'string' && msg.content.trim() !== '');
 
 try {
   const chatCompletion = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: finalPrompt },
-      { role: 'user', content: userMessage }
+      ...cleanMessages
     ]
   });
 
