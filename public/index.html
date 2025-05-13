@@ -58,11 +58,13 @@
       input.value = '';
       document.getElementById('typing').style.display = 'block';
 
+      const cleanHistory = chatHistory.filter(msg => msg.content && msg.content.trim() !== '');
+
       const response = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: chatHistory,
+          messages: cleanHistory,
           prompt: document.getElementById('instrucciones').value,
           tema: document.getElementById('tema').value
         })
