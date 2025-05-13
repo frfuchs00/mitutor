@@ -43,6 +43,11 @@
       <input type="text" id="userInput" placeholder="Escribí tu pregunta...">
       <button onclick="sendMessage()">Enviar</button>
     </div>
+    <div style="margin-top: 10px;">
+      <button onclick="resetChat()" style="padding: 8px 12px; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 5px;">
+        Borrar conversación
+      </button>
+    </div>
   </div>
 
   <script>
@@ -97,6 +102,12 @@
         sendMessage();
       }
     });
+
+    function resetChat() {
+      chatHistory = [];
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = '';
+    }
   </script>
 </body>
 </html>
