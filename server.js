@@ -29,5 +29,10 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-const PORT = 8080;
+const path = require('path');
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor MiTutor corriendo en http://localhost:${PORT}`));

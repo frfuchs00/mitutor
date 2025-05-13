@@ -1,37 +1,91 @@
-const express = require('express');
-const app = express();
-const { Configuration, OpenAIApi } = require('openai');
 
-app.use(express.json());
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MiTutor - Chat Educativo</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; }
+    .chat-container { width: 100%; max-width: 600px; background: white; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; margin-top: 10px; }
+    .chat-box { flex: 1; padding: 20px; overflow-y: auto; height: 300px; }
+    .chat-input { display: flex; border-top: 1px solid #ccc; }
+    .chat-input input { flex: 1; padding: 10px; border: none; font-size: 16px; }
+    .chat-input button { background: #007BFF; color: white; border: none; padding: 10px 15px; cursor: pointer; }
+    .message { margin-bottom: 15px; }
+    .user { text-align: right; }
+    .bot { text-align: left; color: #333; }
+    .typing-indicator { font-style: italic; color: #777; margin-bottom: 10px; }
+    .config-panel { width: 100%; max-width: 600px; background: #fff; padding: 10px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    textarea, select { width: 100%; padding: 5px; font-size: 14px; margin-top: 5px; }
+  </style>
+</head>
+<body>
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+  <div class="config-panel">
+    <label for="tema">Tema:</label>
+    <select id="tema">
+      <option value="general">General</option>
+      <option value="matematicas">Matemáticas</option>
+      <option value="historia">Historia</option>
+      <option value="biologia">Biología</option>
+    </select>
 
-app.post('/chat', async (req, res) => {
-  const { message, prompt, tema } = req.body;
-  const finalPrompt = `${prompt}
+    <label for="instrucciones">Instrucciones del sistema:</label>
+    <textarea id="instrucciones" rows="4">Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.</textarea>
+  </div>
 
-El tema actual es: ${tema}.
-Asegurate de mantenerte en contexto.`;
+  <div class="chat-container">
+    <div class="chat-box" id="chatBox">
+      <div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Escribí tu pregunta...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
 
-  try {
-    const chatCompletion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: finalPrompt },
-        { role: 'user', content: message }
-      ]
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      appendMessage('user', message);
+      input.value = '';
+      document.getElementById('typing').style.display = 'block';
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          prompt: document.getElementById('instrucciones').value,
+          tema: document.getElementById('tema').value
+        })
+      });
+
+      const data = await response.json();
+      document.getElementById('typing').style.display = 'none';
+      appendMessage('bot', data.reply);
+    }
+
+    function appendMessage(sender, text) {
+      const chatBox = document.getElementById('chatBox');
+      const div = document.createElement('div');
+      div.className = `message ${sender}`;
+      div.innerText = text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    document.getElementById('userInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage();
+      }
     });
-
-    res.json({ reply: chatCompletion.choices[0].message.content });
-  } catch (err) {
-    console.error("ERROR:", err);
-    res.status(500).send('Error al comunicarse con OpenAI');
-  }
-});
-
-app.listen(3000, () => {
-  console.log('Server running ');
-});
+  </script>
+</body>
+</html>
