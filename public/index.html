@@ -56,6 +56,13 @@
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
+      // 🔽 Esto permite que Enter también envíe el mensaje
+  document.getElementById('userInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
   </script>
 </body>
 </html>
