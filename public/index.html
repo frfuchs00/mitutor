@@ -18,6 +18,18 @@
   </style>
 </head>
 <body>
+  <div class="config-panel" style="width: 100%; max-width: 600px; background: #fff; padding: 10px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom: 10px;">
+    <label for="tema">Tema:</label>
+    <select id="tema" style="width: 100%; padding: 5px; margin-bottom: 10px;">
+      <option value="general">General</option>
+      <option value="matematicas">Matemáticas</option>
+      <option value="historia">Historia</option>
+      <option value="biologia">Biología</option>
+    </select>
+
+    <label for="instrucciones">Instrucciones del sistema:</label>
+    <textarea id="instrucciones" rows="4" style="width: 100%; padding: 5px;">Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.</textarea>
+  </div>
   <div class="chat-container">
     <div class="chat-box" id="chatBox">
       <div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>
@@ -40,7 +52,11 @@
       const response = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({
+          message,
+          prompt: document.getElementById('instrucciones').value,
+          tema: document.getElementById('tema').value
+        })
       });
 
       const data = await response.json();
