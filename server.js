@@ -11,16 +11,20 @@ app.use(express.static('public'));
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.post('/chat', async (req, res) => {
-  const userMessage = req.body.message;
 
-  try {
-    const chatCompletion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: 'Eres MiTutor, un tutor socrático que guía con preguntas en vez de dar respuestas directas.' },
-        { role: 'user', content: userMessage }
-      ]
-    });
+
+  const { message: userMessage, prompt, tema } = req.body;
+
+const finalPrompt = `${prompt}\nEl tema actual es: ${tema}.`;
+
+try {
+  const chatCompletion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      { role: 'system', content: finalPrompt },
+      { role: 'user', content: userMessage }
+    ]
+  });
 
     res.json({ reply: chatCompletion.choices[0].message.content });
   } catch (err) {
