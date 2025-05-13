@@ -105,8 +105,9 @@
 
     function resetChat() {
       chatHistory = [];
+
       const chatBox = document.getElementById('chatBox');
-      chatBox.innerHTML = '';
+      chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
     }
   </script>
 </body>
