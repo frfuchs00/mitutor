@@ -137,6 +137,26 @@ textarea {
   cursor: pointer;
   border-radius: 5px;
 }
+
+@media (max-width: 600px) {
+  .chat-input {
+    flex-direction: column;
+  }
+
+  .chat-input input,
+  .chat-input button {
+    width: 100%;
+  }
+
+  .config-panel,
+  .chat-container {
+    padding: 10px;
+  }
+
+  header h1 {
+    font-size: 1rem;
+  }
+}
   </style>
 </head>
 <header>
@@ -156,6 +176,7 @@ textarea {
 
     <label for="instrucciones">Instrucciones del sistema:</label>
     <textarea id="instrucciones" rows="4">Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.</textarea>
+    <button onclick="copiarPrompt()" style="margin-top: 5px;">📋 Copiar instrucciones</button>
   </div>
 
   <div class="chat-container">
@@ -229,6 +250,15 @@ textarea {
 
       const chatBox = document.getElementById('chatBox');
       chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
+    }
+
+    function copiarPrompt() {
+      const instrucciones = document.getElementById('instrucciones');
+      instrucciones.select();
+      instrucciones.setSelectionRange(0, 99999); // Para móviles
+      navigator.clipboard.writeText(instrucciones.value)
+        .then(() => alert("Instrucciones copiadas al portapapeles"))
+        .catch(err => alert("Error al copiar: " + err));
     }
   </script>
 </main>
