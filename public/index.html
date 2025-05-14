@@ -54,95 +54,100 @@
     </button>
   </div>
 
-  <script>
-    let chatHistories = {};
-    let currentNivel = null;
+ <script>
+  let historialesPorNivel = {};
+  let nivelActual = '1º EP.';
 
-    async function sendMessage() {
-      if (!currentNivel) currentNivel = 'general';
-      if (!chatHistories[currentNivel]) chatHistories[currentNivel] = [];
-      let chatHistory = chatHistories[currentNivel];
+  if (!historialesPorNivel[nivelActual]) {
+    historialesPorNivel[nivelActual] = [];
+  }
 
-      const input = document.getElementById('userInput');
-      const message = input.value.trim();
-      if (!message) return;
+  function getHistorialActual() {
+    return historialesPorNivel[nivelActual];
+  }
 
-      appendMessage('user', message, currentNivel);
-      chatHistory.push({ role: 'user', content: message });
-      input.value = '';
-      document.getElementById('typing').style.display = 'block';
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    if (!message) return;
 
-      const cleanHistory = chatHistory.filter(msg => msg.content && msg.content.trim() !== '');
+    appendMessage('user', message);
+    getHistorialActual().push({ role: 'user', content: message });
+    input.value = '';
+    document.getElementById('typing').style.display = 'block';
 
-      const response = await fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: cleanHistory,
-          prompt: document.getElementById('instrucciones').value,
-          tema: document.getElementById('tema').value
-        })
-      });
+    const cleanHistory = getHistorialActual().filter(msg => msg.content && msg.content.trim() !== '');
 
-      const data = await response.json();
-      document.getElementById('typing').style.display = 'none';
-
-      if (!data.reply || typeof data.reply !== 'string') {
-        appendMessage('bot', '[Error: respuesta inválida del servidor]', currentNivel);
-        return;
-      }
-
-      appendMessage('bot', data.reply, currentNivel);
-      chatHistory.push({ role: 'assistant', content: data.reply });
-    }
-
-    function appendMessage(sender, text, nivel = currentNivel) {
-      const chatBox = document.getElementById('chatBox');
-      const div = document.createElement('div');
-      div.className = `message ${sender}`;
-      div.innerText = text;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    document.getElementById('userInput').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        sendMessage();
-      }
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: cleanHistory,
+        prompt: document.getElementById('instrucciones').value,
+        tema: document.getElementById('tema').value
+      })
     });
 
-    function resetChat() {
-      if (currentNivel && chatHistories[currentNivel]) {
-        chatHistories[currentNivel] = [];
-      }
+    const data = await response.json();
+    document.getElementById('typing').style.display = 'none';
 
-      const chatBox = document.getElementById('chatBox');
-      chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
+    if (!data.reply || typeof data.reply !== 'string') {
+      appendMessage('bot', '[Error: respuesta inválida del servidor]');
+      return;
     }
 
-    function copiarPrompt() {
-      const instrucciones = document.getElementById('instrucciones');
-      instrucciones.select();
-      instrucciones.setSelectionRange(0, 99999); // Para móviles
-      navigator.clipboard.writeText(instrucciones.value)
-        .then(() => alert("Instrucciones copiadas al portapapeles"))
-        .catch(err => alert("Error al copiar: " + err));
+    appendMessage('bot', data.reply);
+    getHistorialActual().push({ role: 'assistant', content: data.reply });
+  }
+
+  function appendMessage(sender, text) {
+    const chatBox = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    div.innerText = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  document.getElementById('userInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function resetChat() {
+    historialesPorNivel[nivelActual] = [];
+    const chatBox = document.getElementById('chatBox');
+    chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
+  }
+
+  function copiarPrompt() {
+    const instrucciones = document.getElementById('instrucciones');
+    instrucciones.select();
+    instrucciones.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(instrucciones.value)
+      .then(() => alert("Instrucciones copiadas al portapapeles"))
+      .catch(err => alert("Error al copiar: " + err));
+  }
+
+  function seleccionarNivel(nivel) {
+    nivelActual = nivel;
+    if (!historialesPorNivel[nivel]) {
+      historialesPorNivel[nivel] = [];
     }
 
-    function seleccionarNivel(nivel) {
-      const instrucciones = document.getElementById('instrucciones');
-      instrucciones.value = `Estás trabajando con el nivel ${nivel}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`;
-      currentNivel = nivel;
-      document.getElementById('chatBox').innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
-      if (chatHistories[nivel]) {
-        chatHistories[nivel].forEach(msg => {
-          if (msg.role === 'user') appendMessage('user', msg.content, nivel);
-          if (msg.role === 'assistant') appendMessage('bot', msg.content, nivel);
-        });
-      }
-    }
-  </script>
+    const instrucciones = document.getElementById('instrucciones');
+    instrucciones.value = `Estás trabajando con el nivel ${nivel}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`;
+
+    const chatBox = document.getElementById('chatBox');
+    chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
+    historialesPorNivel[nivel].forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
+  }
+</script>
+
+
+
 </main>
 <body>
 </body>
