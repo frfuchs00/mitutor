@@ -191,6 +191,36 @@
     chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
     historialesPorNivel[nivel].mensajes.forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
   }
+
+  async function guardarPrompt() {
+    const nivel = document.getElementById('nivelSelect').value;
+    const eje = document.getElementById('ejeSelect').value;
+    const destinatario = document.getElementById('destinatarioSelect').value;
+    const prompt = document.getElementById('instrucciones').value;
+    const imagenInput = document.getElementById('imagenPrompt');
+    const imagenFile = imagenInput.files[0];
+
+    const formData = new FormData();
+    formData.append('nivel', nivel);
+    formData.append('eje', eje);
+    formData.append('destinatario', destinatario);
+    formData.append('prompt', prompt);
+    if (imagenFile) {
+      formData.append('imagen', imagenFile);
+    }
+
+    try {
+      const response = await fetch('/guardar-prompt', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      alert(result.message || 'Prompt guardado correctamente');
+    } catch (error) {
+      console.error('Error al guardar prompt:', error);
+      alert('Error al guardar el prompt');
+    }
+  }
 </script>
 
   </div>
