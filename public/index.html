@@ -55,14 +55,19 @@
   </div>
 
   <script>
-    let chatHistory = [];
+    let chatHistories = {};
+    let currentNivel = null;
 
     async function sendMessage() {
+      if (!currentNivel) currentNivel = 'general';
+      if (!chatHistories[currentNivel]) chatHistories[currentNivel] = [];
+      let chatHistory = chatHistories[currentNivel];
+
       const input = document.getElementById('userInput');
       const message = input.value.trim();
       if (!message) return;
 
-      appendMessage('user', message);
+      appendMessage('user', message, currentNivel);
       chatHistory.push({ role: 'user', content: message });
       input.value = '';
       document.getElementById('typing').style.display = 'block';
@@ -83,15 +88,15 @@
       document.getElementById('typing').style.display = 'none';
 
       if (!data.reply || typeof data.reply !== 'string') {
-        appendMessage('bot', '[Error: respuesta inválida del servidor]');
+        appendMessage('bot', '[Error: respuesta inválida del servidor]', currentNivel);
         return;
       }
 
-      appendMessage('bot', data.reply);
+      appendMessage('bot', data.reply, currentNivel);
       chatHistory.push({ role: 'assistant', content: data.reply });
     }
 
-    function appendMessage(sender, text) {
+    function appendMessage(sender, text, nivel = currentNivel) {
       const chatBox = document.getElementById('chatBox');
       const div = document.createElement('div');
       div.className = `message ${sender}`;
@@ -108,7 +113,9 @@
     });
 
     function resetChat() {
-      chatHistory = [];
+      if (currentNivel && chatHistories[currentNivel]) {
+        chatHistories[currentNivel] = [];
+      }
 
       const chatBox = document.getElementById('chatBox');
       chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
@@ -126,8 +133,14 @@
     function seleccionarNivel(nivel) {
       const instrucciones = document.getElementById('instrucciones');
       instrucciones.value = `Estás trabajando con el nivel ${nivel}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`;
-      chatHistory = [];
-      resetChat();
+      currentNivel = nivel;
+      document.getElementById('chatBox').innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
+      if (chatHistories[nivel]) {
+        chatHistories[nivel].forEach(msg => {
+          if (msg.role === 'user') appendMessage('user', msg.content, nivel);
+          if (msg.role === 'assistant') appendMessage('bot', msg.content, nivel);
+        });
+      }
     }
   </script>
 </main>
