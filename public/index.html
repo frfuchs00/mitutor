@@ -12,6 +12,21 @@
 </header>
 <main>
 
+  <div class="nivel-buttons">
+    <button onclick="seleccionarNivel('1º EP.')">1º EP.</button>
+    <button onclick="seleccionarNivel('2º EP.')">2º EP.</button>
+    <button onclick="seleccionarNivel('3º EP.')">3º EP.</button>
+    <button onclick="seleccionarNivel('4º EP.')">4º EP.</button>
+    <button onclick="seleccionarNivel('5º EP.')">5º EP.</button>
+    <button onclick="seleccionarNivel('6º EP.')">6º EP.</button>
+    <button onclick="seleccionarNivel('1º ES.')">1º ES.</button>
+    <button onclick="seleccionarNivel('2º ES.')">2º ES.</button>
+    <button onclick="seleccionarNivel('3º ES.')">3º ES.</button>
+    <button onclick="seleccionarNivel('4º ES.')">4º ES.</button>
+    <button onclick="seleccionarNivel('5º ES.')">5º ES.</button>
+    <button onclick="seleccionarNivel('6º ES.')">6º ES.</button>
+  </div>
+
   <div class="config-panel">
     <label for="tema">Tema:</label>
     <select id="tema">
@@ -106,6 +121,13 @@
       navigator.clipboard.writeText(instrucciones.value)
         .then(() => alert("Instrucciones copiadas al portapapeles"))
         .catch(err => alert("Error al copiar: " + err));
+    }
+
+    function seleccionarNivel(nivel) {
+      const instrucciones = document.getElementById('instrucciones');
+      instrucciones.value = `Estás trabajando con el nivel ${nivel}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`;
+      chatHistory = [];
+      resetChat();
     }
   </script>
 </main>
