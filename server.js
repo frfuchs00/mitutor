@@ -60,7 +60,8 @@ db.run(`CREATE TABLE IF NOT EXISTS prompts (
   eje TEXT,
   destinatario TEXT,
   prompt TEXT,
-  imagen TEXT
+  imagen TEXT,
+  cuadernillo TEXT
 )`);
 
 // Ruta de test para validar SQLite
@@ -76,13 +77,17 @@ app.get('/test-db', (req, res) => {
 });
 
 
-app.post('/guardar-prompt', upload.single('imagen'), (req, res) => {
+app.post('/guardar-prompt', upload.fields([
+  { name: 'imagen', maxCount: 1 },
+  { name: 'cuadernillo', maxCount: 1 }
+]), (req, res) => {
   const { nivel, eje, destinatario, prompt } = req.body;
-  const imagen = req.file ? req.file.filename : '';
+  const imagen = req.files?.imagen?.[0]?.filename || '';
+  const cuadernillo = req.files?.cuadernillo?.[0]?.filename || '';
 
   db.run(
-    "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
-    [nivel, eje, destinatario, prompt, imagen],
+    "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen, cuadernillo) VALUES (?, ?, ?, ?, ?, ?)",
+    [nivel, eje, destinatario, prompt, imagen, cuadernillo],
     function (err) {
       if (err) {
         console.error(err);
