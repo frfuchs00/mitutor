@@ -17,7 +17,7 @@
     <div class="row mb-3">
       <div class="col-md-4">
         <label for="nivelSelect" class="form-label">Nivel</label>
-        <select id="nivelSelect" class="form-select">
+        <select id="nivelSelect" class="form-select" onchange="cargarPromptGuardado()">
           <option value="K3">K3</option>
           <option value="K4">K4</option>
           <option value="K5">K5</option>
@@ -37,7 +37,7 @@
       </div>
       <div class="col-md-4">
         <label for="ejeSelect" class="form-label">Eje</label>
-        <select id="ejeSelect" class="form-select">
+        <select id="ejeSelect" class="form-select" onchange="cargarPromptGuardado()">
           <option value="MAT">MAT</option>
           <option value="COM">COM</option>
           <option value="ING">ING</option>
@@ -50,7 +50,7 @@
       </div>
       <div class="col-md-4">
         <label for="destinatarioSelect" class="form-label">Destinatario</label>
-        <select id="destinatarioSelect" class="form-select">
+        <select id="destinatarioSelect" class="form-select" onchange="cargarPromptGuardado()">
           <option value="Estudiantes">Estudiantes</option>
           <option value="Docentes">Docentes</option>
         </select>
@@ -190,6 +190,21 @@
     historialesPorNivel[nivel].mensajes.forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
   }
 
+  async function cargarPromptGuardado() {
+    const nivel = document.getElementById('nivelSelect').value;
+    const eje = document.getElementById('ejeSelect').value;
+    const destinatario = document.getElementById('destinatarioSelect').value;
+
+    try {
+      const response = await fetch(`/prompt?nivel=${nivel}&eje=${eje}&destinatario=${destinatario}`);
+      if (!response.ok) throw new Error('No encontrado');
+      const data = await response.json();
+      document.getElementById('instrucciones').value = data.prompt || '';
+    } catch (error) {
+      document.getElementById('instrucciones').value = '';
+    }
+  }
+
   async function guardarPrompt() {
     const nivel = document.getElementById('nivelSelect').value;
     const eje = document.getElementById('ejeSelect').value;
@@ -223,6 +238,8 @@
       alert('Error al guardar el prompt');
     }
   }
+  // Llama a cargarPromptGuardado al cargar la página
+  window.addEventListener('DOMContentLoaded', cargarPromptGuardado);
 </script>
 
   </div>
