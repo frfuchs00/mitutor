@@ -14,7 +14,8 @@
 </header>
 <main>
   <div class="container">
-
+    const multer = require('multer');
+    const upload = multer({ dest: 'uploads/' });
     <div class="row mb-3">
       <div class="col-md-4">
         <label for="nivelSelect" class="form-label">Nivel</label>
@@ -57,7 +58,9 @@
         </select>
       </div>
     </div>
-
+    app.post('/guardar-prompt', upload.single('imagen'), (req, res) => {
+    const { nivel, eje, destinatario, prompt } = req.body;
+    const imagen = req.file ? req.file.filename : '';
     <div class="mb-3">
       <label for="imagenPrompt" class="form-label">Imagen identificadora</label>
       <input type="file" class="form-control" id="imagenPrompt" accept="image/*">
@@ -135,6 +138,16 @@
     if (!data.reply || typeof data.reply !== 'string') {
       appendMessage('bot', '[Error: respuesta inválida del servidor]');
       return;
+    db.run(
+      "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
+      [nivel, eje, destinatario, prompt, imagen],
+      function (err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Error al guardar el prompt' });
+        }
+        res.json({ success: true, id: this.lastID });
+
     }
 
     appendMessage('bot', data.reply);
@@ -227,3 +240,5 @@
 </main>
 </body>
 </html>
+  );
+});
