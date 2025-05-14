@@ -13,12 +13,16 @@
   <h1 class="h4 m-0">MiTutor - Active Learning</h1>
 </header>
 <div class="text-center mb-3">
-  <div id="dropArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 20px; position: relative; cursor: pointer;">
-    <img id="imagenPreview" src="image.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
-    <p id="nombreCuadernillo" class="mt-2 text-muted small"></p>
-    <p id="cuadernilloLink" class="mt-2"></p>
-    <p class="mt-2">Arrastrá una imagen o hacé clic para seleccionar</p>
-    <input type="file" id="imagenPrompt" name="imagen" accept="image/*" style="display: none;" onchange="mostrarImagenPreview(event)">
+  <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
+    <div id="dropArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 20px; position: relative; cursor: pointer;">
+      <img id="imagenPreview" src="image.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
+      <p class="mt-2">Arrastrá una imagen o hacé clic para seleccionar</p>
+      <input type="file" id="imagenPrompt" name="imagen" accept="image/*" style="display: none;" onchange="mostrarImagenPreview(event)">
+    </div>
+    <div class="text-start">
+      <p id="nombreCuadernillo" class="mt-2 mb-1 fw-bold"></p>
+      <p id="cuadernilloLink" class="mt-1"></p>
+    </div>
   </div>
 </div>
 <main>
@@ -64,7 +68,7 @@
           <option value="Docentes">Docentes</option>
         </select>
       </div>
-    </div>
+    </div>git status
     <!-- Imagen identificadora input ahora está incluido en el bloque drag-and-drop arriba -->
 
     <div class="config-panel card p-3 mb-3">
