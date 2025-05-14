@@ -13,7 +13,11 @@
   <h1 class="h4 m-0">MiTutor - Active Learning</h1>
 </header>
 <div class="text-center mb-3">
-  <img id="imagenPreview" src="logo-active-learning.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
+  <div id="dropArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 20px; position: relative; cursor: pointer;">
+    <img id="imagenPreview" src="image.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
+    <p class="mt-2">Arrastrá una imagen o hacé clic para seleccionar</p>
+    <input type="file" id="imagenPrompt" name="imagen" accept="image/*" style="display: none;">
+  </div>
 </div>
 <main>
   <div class="container">
@@ -59,10 +63,7 @@
         </select>
       </div>
     </div>
-    <div class="mb-3">
-      <label for="imagenPrompt" class="form-label">Imagen identificadora</label>
-      <input type="file" class="form-control" id="imagenPrompt" accept="image/*" onchange="mostrarImagenPreview(event)">
-    </div>
+    <!-- Imagen identificadora input ahora está incluido en el bloque drag-and-drop arriba -->
 
     <div class="config-panel card p-3 mb-3">
       <label for="instrucciones">Instrucciones del sistema:</label>
@@ -197,7 +198,7 @@
       if (data.imagen) {
         document.getElementById('imagenPreview').src = data.imagen;
       } else {
-        document.getElementById('imagenPreview').src = "logo-active-learning.png";
+        document.getElementById('imagenPreview').src = "image.png";
       }
     } catch (error) {
       document.getElementById('instrucciones').value = 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
@@ -250,9 +251,34 @@
       };
       reader.readAsDataURL(file);
     } else {
-      preview.src = "logo-active-learning.png";
+      preview.src = "image.png";
     }
   }
+
+  // Drag and drop soporte para imagen identificadora
+  const dropArea = document.getElementById('dropArea');
+  const fileInput = document.getElementById('imagenPrompt');
+
+  dropArea.addEventListener('click', () => fileInput.click());
+
+  dropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropArea.style.borderColor = '#007bff';
+  });
+
+  dropArea.addEventListener('dragleave', () => {
+    dropArea.style.borderColor = '#ccc';
+  });
+
+  dropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropArea.style.borderColor = '#ccc';
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      fileInput.files = e.dataTransfer.files;
+      mostrarImagenPreview({ target: { files: [file] } });
+    }
+  });
 </script>
 
   </div>
