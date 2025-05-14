@@ -149,6 +149,11 @@ textarea {
 }
 
 @media (max-width: 600px) {
+  main {
+    margin: 15px auto;
+    padding: 0 10px;
+  }
+
   .chat-input {
     flex-direction: column;
   }
@@ -156,6 +161,7 @@ textarea {
   .chat-input input,
   .chat-input button {
     width: 100%;
+    margin-top: 5px;
   }
 
   .config-panel,
@@ -165,9 +171,20 @@ textarea {
 
   header h1 {
     font-size: 1rem;
+    text-align: center;
   }
+
   .config-panel textarea {
     max-height: 150px;
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 14px;
+  }
+
+  textarea {
+    font-size: 14px;
   }
 }
   </style>
