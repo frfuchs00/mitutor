@@ -54,16 +54,23 @@
     </button>
   </div>
 
- <script>
+<script>
   let historialesPorNivel = {};
   let nivelActual = '1º EP.';
 
   if (!historialesPorNivel[nivelActual]) {
-    historialesPorNivel[nivelActual] = [];
+    historialesPorNivel[nivelActual] = {
+      prompt: `Estás trabajando con el nivel ${nivelActual}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`,
+      mensajes: []
+    };
   }
 
   function getHistorialActual() {
-    return historialesPorNivel[nivelActual];
+    return historialesPorNivel[nivelActual].mensajes;
+  }
+
+  function getPromptActual() {
+    return historialesPorNivel[nivelActual].prompt;
   }
 
   async function sendMessage() {
@@ -83,7 +90,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: cleanHistory,
-        prompt: document.getElementById('instrucciones').value,
+        prompt: getPromptActual(),
         tema: document.getElementById('tema').value
       })
     });
@@ -117,7 +124,7 @@
   });
 
   function resetChat() {
-    historialesPorNivel[nivelActual] = [];
+    historialesPorNivel[nivelActual].mensajes = [];
     const chatBox = document.getElementById('chatBox');
     chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
   }
@@ -129,23 +136,28 @@
     navigator.clipboard.writeText(instrucciones.value)
       .then(() => alert("Instrucciones copiadas al portapapeles"))
       .catch(err => alert("Error al copiar: " + err));
+
+    // Guarda el prompt por nivel
+    historialesPorNivel[nivelActual].prompt = instrucciones.value;
   }
 
   function seleccionarNivel(nivel) {
     nivelActual = nivel;
     if (!historialesPorNivel[nivel]) {
-      historialesPorNivel[nivel] = [];
+      historialesPorNivel[nivel] = {
+        prompt: `Estás trabajando con el nivel ${nivel}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`,
+        mensajes: []
+      };
     }
 
     const instrucciones = document.getElementById('instrucciones');
-    instrucciones.value = `Estás trabajando con el nivel ${nivel}. Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.`;
+    instrucciones.value = historialesPorNivel[nivel].prompt;
 
     const chatBox = document.getElementById('chatBox');
     chatBox.innerHTML = '<div id="typing" class="typing-indicator" style="display:none;">MiTutor está pensando...</div>';
-    historialesPorNivel[nivel].forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
+    historialesPorNivel[nivel].mensajes.forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
   }
 </script>
-
 
 
 </main>
