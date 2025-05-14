@@ -6,13 +6,27 @@ const dbPath = path.join(__dirname, 'prompts.db');
 const db = new sqlite3.Database(dbPath);
 const cors = require('cors');
 const { OpenAI } = require('openai');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
 app.use(express.static('public'));
+
+const multer = require('multer');
+const uploadPath = path.join(__dirname, 'uploads');
+const fs = require('fs');
+if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadPath),
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ storage });
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -61,11 +75,10 @@ app.get('/test-db', (req, res) => {
   });
 });
 
+
 app.post('/guardar-prompt', upload.single('imagen'), (req, res) => {
   const { nivel, eje, destinatario, prompt } = req.body;
   const imagen = req.file ? req.file.filename : '';
-
-  console.log("Prompt recibido:", { nivel, eje, destinatario, prompt, imagen });
 
   db.run(
     "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
@@ -76,6 +89,22 @@ app.post('/guardar-prompt', upload.single('imagen'), (req, res) => {
         return res.status(500).json({ error: 'Error al guardar el prompt' });
       }
       res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+app.get('/prompt', (req, res) => {
+  const { nivel, eje, destinatario } = req.query;
+  db.get(
+    "SELECT * FROM prompts WHERE nivel = ? AND eje = ? AND destinatario = ? ORDER BY id DESC LIMIT 1",
+    [nivel, eje, destinatario],
+    (err, row) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al buscar el prompt' });
+      }
+      if (!row) return res.status(404).json({ error: 'Prompt no encontrado' });
+      res.json(row);
     }
   );
 });
