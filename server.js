@@ -104,7 +104,10 @@ app.get('/prompt', (req, res) => {
         return res.status(500).json({ error: 'Error al buscar el prompt' });
       }
       if (!row) return res.status(404).json({ error: 'Prompt no encontrado' });
-      res.json(row);
+      res.json({
+        ...row,
+        imagen: row.imagen ? `/uploads/${row.imagen}` : null
+      });
     }
   );
 });
