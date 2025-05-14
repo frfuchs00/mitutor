@@ -6,6 +6,8 @@ const dbPath = path.join(__dirname, 'prompts.db');
 const db = new sqlite3.Database(dbPath);
 const cors = require('cors');
 const { OpenAI } = require('openai');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 app.use(cors());
@@ -59,18 +61,15 @@ app.get('/test-db', (req, res) => {
   });
 });
 
-app.post('/guardar-prompt', (req, res) => {
-  console.log("Datos recibidos en /guardar-prompt:");
-  console.log("Nivel:", req.body.nivel);
-  console.log("Eje:", req.body.eje);
-  console.log("Destinatario:", req.body.destinatario);
-  console.log("Prompt:", req.body.prompt);
-  console.log("Imagen:", req.body.imagen);
-  const { nivel, eje, destinatario, prompt, imagen } = req.body;
+app.post('/guardar-prompt', upload.single('imagen'), (req, res) => {
+  const { nivel, eje, destinatario, prompt } = req.body;
+  const imagen = req.file ? req.file.filename : '';
+
+  console.log("Prompt recibido:", { nivel, eje, destinatario, prompt, imagen });
 
   db.run(
     "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
-    [nivel, eje, destinatario, prompt, imagen || ''],
+    [nivel, eje, destinatario, prompt, imagen],
     function (err) {
       if (err) {
         console.error(err);
