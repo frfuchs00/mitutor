@@ -59,7 +59,16 @@ label {
   display: block;
 }
 
-select,
+select {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: 'Nunito', sans-serif;
+}
+
 textarea {
   width: 100%;
   padding: 8px;
@@ -68,6 +77,7 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 5px;
   font-family: 'Nunito', sans-serif;
+  resize: vertical;
 }
 
 .chat-box {
@@ -155,6 +165,9 @@ textarea {
 
   header h1 {
     font-size: 1rem;
+  }
+  .config-panel textarea {
+    max-height: 150px;
   }
 }
   </style>
