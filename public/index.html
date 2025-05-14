@@ -84,7 +84,7 @@
     document.getElementById('typing').style.display = 'block';
 
     const cleanHistory = getHistorialActual().filter(msg => msg.content && msg.content.trim() !== '');
-
+    historialesPorNivel[nivelActual].prompt = document.getElementById('instrucciones').value;
     const response = await fetch('/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
