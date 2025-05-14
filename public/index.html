@@ -16,6 +16,7 @@
   <div id="dropArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 20px; position: relative; cursor: pointer;">
     <img id="imagenPreview" src="image.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
     <p id="nombreCuadernillo" class="mt-2 text-muted small"></p>
+    <p id="cuadernilloLink" class="mt-2"></p>
     <p class="mt-2">Arrastrá una imagen o hacé clic para seleccionar</p>
     <input type="file" id="imagenPrompt" name="imagen" accept="image/*" style="display: none;" onchange="mostrarImagenPreview(event)">
   </div>
@@ -206,9 +207,12 @@
         document.getElementById('imagenPreview').src = "image.png";
       }
       if (data.cuadernillo) {
-        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + data.cuadernillo;
+        const nombreArchivo = data.cuadernillo.split('/').pop();
+        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + nombreArchivo;
+        document.getElementById('cuadernilloLink').innerHTML = `📎 <a href="${data.cuadernillo}" target="_blank">Ver cuadernillo</a>`;
       } else {
         document.getElementById('nombreCuadernillo').textContent = '';
+        document.getElementById('cuadernilloLink').textContent = '';
       }
     } catch (error) {
       document.getElementById('instrucciones').value = 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
@@ -248,7 +252,9 @@
       const result = await response.json();
       alert(result.message || 'Prompt guardado correctamente');
       if (result.cuadernillo) {
-        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + result.cuadernillo;
+        const nombreArchivo = result.cuadernillo.split('/').pop();
+        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + nombreArchivo;
+        document.getElementById('cuadernilloLink').innerHTML = `📎 <a href="${result.cuadernillo}" target="_blank">Ver cuadernillo</a>`;
       }
     } catch (error) {
       console.error('Error al guardar prompt:', error);
