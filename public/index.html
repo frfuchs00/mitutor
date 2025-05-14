@@ -15,8 +15,9 @@
 <div class="text-center mb-3">
   <div id="dropArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 20px; position: relative; cursor: pointer;">
     <img id="imagenPreview" src="image.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
+    <p id="nombreCuadernillo" class="mt-2 text-muted small"></p>
     <p class="mt-2">Arrastrá una imagen o hacé clic para seleccionar</p>
-    <input type="file" id="imagenPrompt" name="imagen" accept="image/*" style="display: none;">
+    <input type="file" id="imagenPrompt" name="imagen" accept="image/*" style="display: none;" onchange="mostrarImagenPreview(event)">
   </div>
 </div>
 <main>
@@ -68,6 +69,10 @@
     <div class="config-panel card p-3 mb-3">
       <label for="instrucciones">Instrucciones del sistema:</label>
       <textarea id="instrucciones" rows="4" class="form-control mb-2">Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.</textarea>
+      
+      <label for="cuadernilloPrompt" class="form-label mt-3">Subí un cuadernillo (PDF)</label>
+      <input type="file" id="cuadernilloPrompt" name="cuadernillo" accept="application/pdf" class="form-control">
+
       <button onclick="guardarPrompt()" class="btn btn-success mt-2">💾 Guardar Prompt</button>
     </div>
 
@@ -200,8 +205,14 @@
       } else {
         document.getElementById('imagenPreview').src = "image.png";
       }
+      if (data.cuadernillo) {
+        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + data.cuadernillo;
+      } else {
+        document.getElementById('nombreCuadernillo').textContent = '';
+      }
     } catch (error) {
       document.getElementById('instrucciones').value = 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
+      document.getElementById('nombreCuadernillo').textContent = '';
     }
   }
 
@@ -212,7 +223,7 @@
     const prompt = document.getElementById('instrucciones').value;
     const imagenInput = document.getElementById('imagenPrompt');
     const imagenFile = imagenInput.files[0];
-
+    const cuadernilloFile = document.getElementById('cuadernilloPrompt').files[0];
     const formData = new FormData();
     formData.append('nivel', nivel);
     formData.append('eje', eje);
@@ -220,6 +231,9 @@
     formData.append('prompt', prompt);
     if (imagenFile) {
       formData.append('imagen', imagenFile);
+    }
+    if (cuadernilloFile) {
+      formData.append('cuadernillo', cuadernilloFile);
     }
 
     try {
@@ -233,6 +247,9 @@
       });
       const result = await response.json();
       alert(result.message || 'Prompt guardado correctamente');
+      if (result.cuadernillo) {
+        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + result.cuadernillo;
+      }
     } catch (error) {
       console.error('Error al guardar prompt:', error);
       alert('Error al guardar el prompt');
@@ -285,5 +302,3 @@
 </main>
 </body>
 </html>
-  );
-});
