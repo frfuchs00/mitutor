@@ -60,6 +60,12 @@ app.get('/test-db', (req, res) => {
 });
 
 app.post('/guardar-prompt', (req, res) => {
+  console.log("Datos recibidos en /guardar-prompt:");
+  console.log("Nivel:", req.body.nivel);
+  console.log("Eje:", req.body.eje);
+  console.log("Destinatario:", req.body.destinatario);
+  console.log("Prompt:", req.body.prompt);
+  console.log("Imagen:", req.body.imagen);
   const { nivel, eje, destinatario, prompt, imagen } = req.body;
 
   db.run(
