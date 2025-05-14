@@ -15,19 +15,52 @@
 <main>
   <div class="container">
 
-    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-      <button class="btn btn-outline-primary rounded-pill" onclick="seleccionarNivel('1º EP.')">1º EP.</button>
-      <button class="btn btn-outline-primary rounded-pill" onclick="seleccionarNivel('2º EP.')">2º EP.</button>
-      <button class="btn btn-outline-primary rounded-pill" onclick="seleccionarNivel('3º EP.')">3º EP.</button>
-      <button class="btn btn-outline-primary rounded-pill" onclick="seleccionarNivel('4º EP.')">4º EP.</button>
-      <button class="btn btn-outline-primary rounded-pill" onclick="seleccionarNivel('5º EP.')">5º EP.</button>
-      <button class="btn btn-outline-primary rounded-pill" onclick="seleccionarNivel('6º EP.')">6º EP.</button>
-      <button class="btn btn-outline-secondary rounded-pill" onclick="seleccionarNivel('1º ES.')">1º ES.</button>
-      <button class="btn btn-outline-secondary rounded-pill" onclick="seleccionarNivel('2º ES.')">2º ES.</button>
-      <button class="btn btn-outline-secondary rounded-pill" onclick="seleccionarNivel('3º ES.')">3º ES.</button>
-      <button class="btn btn-outline-secondary rounded-pill" onclick="seleccionarNivel('4º ES.')">4º ES.</button>
-      <button class="btn btn-outline-secondary rounded-pill" onclick="seleccionarNivel('5º ES.')">5º ES.</button>
-      <button class="btn btn-outline-secondary rounded-pill" onclick="seleccionarNivel('6º ES.')">6º ES.</button>
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="nivelSelect" class="form-label">Nivel</label>
+        <select id="nivelSelect" class="form-select">
+          <option value="K3">K3</option>
+          <option value="K4">K4</option>
+          <option value="K5">K5</option>
+          <option value="1N">1N</option>
+          <option value="2N">2N</option>
+          <option value="3N">3N</option>
+          <option value="4N">4N</option>
+          <option value="5N">5N</option>
+          <option value="6N">6N</option>
+          <option value="7N">7N</option>
+          <option value="8N">8N</option>
+          <option value="9N">9N</option>
+          <option value="10N">10N</option>
+          <option value="11N">11N</option>
+          <option value="12N">12N</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="ejeSelect" class="form-label">Eje</label>
+        <select id="ejeSelect" class="form-select">
+          <option value="MAT">MAT</option>
+          <option value="COM">COM</option>
+          <option value="ING">ING</option>
+          <option value="TEC">TEC</option>
+          <option value="NAT">NAT</option>
+          <option value="SOC">SOC</option>
+          <option value="INT">INT</option>
+          <option value="PROF">PROF</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="destinatarioSelect" class="form-label">Destinatario</label>
+        <select id="destinatarioSelect" class="form-select">
+          <option value="Estudiantes">Estudiantes</option>
+          <option value="Docentes">Docentes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="imagenPrompt" class="form-label">Imagen identificadora</label>
+      <input type="file" class="form-control" id="imagenPrompt" accept="image/*">
     </div>
 
     <div class="config-panel card p-3 mb-3">
@@ -41,7 +74,7 @@
 
       <label for="instrucciones">Instrucciones del sistema:</label>
       <textarea id="instrucciones" rows="4" class="form-control mb-2">Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.</textarea>
-      <button onclick="copiarPrompt()" style="margin-top: 5px;">📋 Copiar instrucciones</button>
+      <button onclick="guardarPrompt()" class="btn btn-success mt-2">💾 Guardar Prompt</button>
     </div>
 
     <div class="chat-container card p-3">

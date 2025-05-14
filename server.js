@@ -1,5 +1,9 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const dbPath = path.join(__dirname, 'prompts.db');
+const db = new sqlite3.Database(dbPath);
 const cors = require('cors');
 const { OpenAI } = require('openai');
 
@@ -34,7 +38,43 @@ try {
   }
 });
 
-const path = require('path');
+db.run(`CREATE TABLE IF NOT EXISTS prompts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nivel TEXT,
+  eje TEXT,
+  destinatario TEXT,
+  prompt TEXT,
+  imagen TEXT
+)`);
+
+// Ruta de test para validar SQLite
+app.get('/test-db', (req, res) => {
+  db.serialize(() => {
+    db.run("INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
+      ['TestNivel', 'TestEje', 'TestDest', 'Este es un prompt de prueba', '']);
+    db.all("SELECT * FROM prompts WHERE nivel = ?", ['TestNivel'], (err, rows) => {
+      if (err) return res.status(500).send('Error al leer la base');
+      res.json(rows);
+    });
+  });
+});
+
+app.post('/guardar-prompt', (req, res) => {
+  const { nivel, eje, destinatario, prompt, imagen } = req.body;
+
+  db.run(
+    "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
+    [nivel, eje, destinatario, prompt, imagen || ''],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al guardar el prompt' });
+      }
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
 });
