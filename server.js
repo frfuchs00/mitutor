@@ -35,17 +35,41 @@ app.post('/chat', async (req, res) => {
 
   const { messages, prompt, tema } = req.body;
 
-const finalPrompt = `${prompt}\nEl tema actual es: ${tema}.`;
-const cleanMessages = messages.filter(msg => msg.content && typeof msg.content === 'string' && msg.content.trim() !== '');
+  let cuadernilloTexto = '';
 
-try {
-  const chatCompletion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: finalPrompt },
-      ...cleanMessages
-    ]
-  });
+  try {
+    const row = await new Promise((resolve, reject) => {
+      db.get("SELECT id FROM prompts WHERE prompt = ? ORDER BY id DESC LIMIT 1", [prompt], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (row) {
+      const rows = await new Promise((resolve, reject) => {
+        db.all("SELECT content FROM cuadernillos WHERE prompt_id = ?", [row.id], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+
+      cuadernilloTexto = rows.map(r => r.content).join('\n');
+    }
+  } catch (e) {
+    console.error('Error leyendo cuadernillos', e);
+  }
+
+  const finalPrompt = `${prompt}\nEl tema actual es: ${tema}.\nContenidos relevantes:\n${cuadernilloTexto}`;
+  const cleanMessages = messages.filter(msg => msg.content && typeof msg.content === 'string' && msg.content.trim() !== '');
+
+  try {
+    const chatCompletion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: finalPrompt },
+        ...cleanMessages
+      ]
+    });
 
     res.json({ reply: chatCompletion.choices[0].message.content });
   } catch (err) {
@@ -60,8 +84,15 @@ db.run(`CREATE TABLE IF NOT EXISTS prompts (
   eje TEXT,
   destinatario TEXT,
   prompt TEXT,
-  imagen TEXT,
-  cuadernillo TEXT
+  imagen TEXT
+)`);
+
+db.run(`CREATE TABLE IF NOT EXISTS cuadernillos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  prompt_id INTEGER,
+  filename TEXT,
+  content TEXT,
+  FOREIGN KEY(prompt_id) REFERENCES prompts(id)
 )`);
 
 // Ruta de test para validar SQLite
@@ -79,21 +110,32 @@ app.get('/test-db', (req, res) => {
 
 app.post('/guardar-prompt', upload.fields([
   { name: 'imagen', maxCount: 1 },
-  { name: 'cuadernillo', maxCount: 1 }
+  { name: 'cuadernillo', maxCount: 10 }
 ]), (req, res) => {
   const { nivel, eje, destinatario, prompt } = req.body;
   const imagen = req.files?.imagen?.[0]?.filename || '';
-  const cuadernillo = req.files?.cuadernillo?.[0]?.filename || '';
 
   db.run(
-    "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen, cuadernillo) VALUES (?, ?, ?, ?, ?, ?)",
-    [nivel, eje, destinatario, prompt, imagen, cuadernillo],
+    "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
+    [nivel, eje, destinatario, prompt, imagen],
     function (err) {
       if (err) {
         console.error(err);
         return res.status(500).json({ error: 'Error al guardar el prompt' });
       }
-      res.json({ success: true, id: this.lastID });
+      const promptId = this.lastID;
+      const cuadernillos = req.files?.cuadernillo || [];
+
+      cuadernillos.forEach(file => {
+        const filePath = path.join(uploadPath, file.filename);
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        db.run(
+          "INSERT INTO cuadernillos (prompt_id, filename, content) VALUES (?, ?, ?)",
+          [promptId, file.filename, fileContent]
+        );
+      });
+
+      res.json({ success: true, id: promptId });
     }
   );
 });

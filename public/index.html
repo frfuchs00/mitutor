@@ -13,7 +13,7 @@
   <h1 class="h4 m-0">MiTutor - Active Learning</h1>
 </header>
 <div class="text-center mb-3">
-  <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
+  <div class="d-flex justify-content-start align-items-center gap-4 flex-wrap px-4">
     <div id="dropArea" style="border: 2px dashed #ccc; border-radius: 10px; padding: 20px; position: relative; cursor: pointer;">
       <img id="imagenPreview" src="image.png" alt="Imagen identificadora" class="img-fluid" style="max-height: 200px;">
       <p class="mt-2">Arrastrá una imagen o hacé clic para seleccionar</p>
@@ -68,7 +68,7 @@
           <option value="Docentes">Docentes</option>
         </select>
       </div>
-    </div>git status
+    </div>
     <!-- Imagen identificadora input ahora está incluido en el bloque drag-and-drop arriba -->
 
     <div class="config-panel card p-3 mb-3">
@@ -76,7 +76,12 @@
       <textarea id="instrucciones" rows="4" class="form-control mb-2">Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.</textarea>
       
       <label for="cuadernilloPrompt" class="form-label mt-3">Subí un cuadernillo (PDF, DOC, TXT)</label>
-      <input type="file" id="cuadernilloPrompt" name="cuadernillo" accept=".pdf,.doc,.docx,.txt" class="form-control">
+      <input type="file" id="cuadernilloPrompt" name="cuadernillo" accept=".pdf,.doc,.docx,.txt" class="form-control d-none" multiple>
+      <div id="dropCuadernilloArea" class="border border-secondary rounded p-3 mt-2 text-center" style="cursor: pointer;">
+        <p class="mb-0">Arrastrá el cuadernillo o hacé clic para seleccionarlo</p>
+        <input type="file" id="cuadernilloPrompt" name="cuadernillo" accept=".pdf,.doc,.docx,.txt" class="form-control d-none" multiple>
+      </div>
+      <div id="listaCuadernillos" class="mt-2 small text-muted"></div>
 
       <button onclick="guardarPrompt()" class="btn btn-success mt-2">💾 Guardar Prompt</button>
     </div>
@@ -231,7 +236,7 @@
     const prompt = document.getElementById('instrucciones').value;
     const imagenInput = document.getElementById('imagenPrompt');
     const imagenFile = imagenInput.files[0];
-    const cuadernilloFile = document.getElementById('cuadernilloPrompt').files[0];
+    const cuadernilloFiles = document.getElementById('cuadernilloPrompt').files;
     const formData = new FormData();
     formData.append('nivel', nivel);
     formData.append('eje', eje);
@@ -240,12 +245,11 @@
     if (imagenFile) {
       formData.append('imagen', imagenFile);
     }
-    if (cuadernilloFile) {
-      formData.append('cuadernillo', cuadernilloFile);
+    for (const file of cuadernilloFiles) {
+      formData.append('cuadernillos', file);
     }
 
     try {
-
       for (var pair of formData.entries()) {
         console.log(pair[0]+ ': ' + pair[1]); 
       }
@@ -304,6 +308,35 @@
     if (file) {
       fileInput.files = e.dataTransfer.files;
       mostrarImagenPreview({ target: { files: [file] } });
+    }
+  });
+
+  // Drag and drop soporte para cuadernillo
+  const dropCuadernillo = document.getElementById('dropCuadernilloArea');
+  const fileCuadernillo = document.getElementById('cuadernilloPrompt');
+  dropCuadernillo.addEventListener('click', () => fileCuadernillo.click());
+  fileCuadernillo.addEventListener('change', () => {
+    const lista = document.getElementById('listaCuadernillos');
+    lista.innerHTML = '';
+    for (const f of fileCuadernillo.files) {
+      lista.innerHTML += `<div>📄 ${f.name}</div>`;
+    }
+  });
+  dropCuadernillo.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropCuadernillo.classList.add('border-primary');
+  });
+  dropCuadernillo.addEventListener('dragleave', () => {
+    dropCuadernillo.classList.remove('border-primary');
+  });
+  dropCuadernillo.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropCuadernillo.classList.remove('border-primary');
+    fileCuadernillo.files = e.dataTransfer.files;
+    const lista = document.getElementById('listaCuadernillos');
+    lista.innerHTML = '';
+    for (const f of e.dataTransfer.files) {
+      lista.innerHTML += `<div>📄 ${f.name}</div>`;
     }
   });
 </script>
