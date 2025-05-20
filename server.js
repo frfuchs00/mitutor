@@ -1,3 +1,9 @@
+const express = require('express');
+const app = express();
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
+
 app.get('/prompt', (req, res) => {
   const { nivel, eje, destinatario } = req.query;
   db.get(
@@ -30,4 +36,9 @@ app.get('/prompt', (req, res) => {
       );
     }
   );
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor MiTutor corriendo en http://localhost:${PORT}`);
 });
