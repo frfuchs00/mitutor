@@ -49,6 +49,50 @@ app.get('/prompt', (req, res) => {
   );
 });
 
+const multer = require('multer');
+const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
+app.post('/guardar-prompt', upload.fields([
+  { name: 'imagen', maxCount: 1 },
+  { name: 'cuadernillos' }
+]), (req, res) => {
+  const { nivel, eje, destinatario, prompt } = req.body;
+  const imagenFile = req.files['imagen'] ? req.files['imagen'][0].filename : null;
+  const cuadernillos = req.files['cuadernillos'] || [];
+
+  db.run(
+    "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
+    [nivel, eje, destinatario, prompt, imagenFile],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al guardar el prompt' });
+      }
+
+      const promptId = this.lastID;
+
+      const insertCuadernillo = db.prepare("INSERT INTO cuadernillos (prompt_id, filename, content) VALUES (?, ?, ?)");
+
+      cuadernillos.forEach(file => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        let content = '';
+
+        try {
+          content = fs.readFileSync(file.path, 'utf8');
+        } catch (readErr) {
+          console.error(`Error al leer ${file.originalname}:`, readErr.message);
+        }
+
+        insertCuadernillo.run(promptId, file.filename, content);
+      });
+
+      insertCuadernillo.finalize();
+
+      res.json({ success: true });
+    }
+  );
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor MiTutor corriendo en http://localhost:${PORT}`);
