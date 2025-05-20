@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,7 +33,10 @@ app.get('/prompt', (req, res) => {
             return res.status(500).json({ error: 'Error al buscar cuadernillos' });
           }
 
-          const cuadernilloLinks = cuadernillos.map(c => `/uploads/${c.filename}`);
+          const cuadernilloLinks = cuadernillos.map(c => ({
+            nombre: c.filename,
+            url: `/uploads/${c.filename}`
+          }));
 
           res.json({
             ...row,

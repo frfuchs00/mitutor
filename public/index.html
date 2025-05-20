@@ -270,6 +270,8 @@
         document.getElementById('nombreCuadernillo').textContent = 'Cuadernillos:';
         document.getElementById('cuadernilloLink').innerHTML = lista;
       }
+      alert('Prompt guardado correctamente. Se cargarán los cuadernillos...');
+      setTimeout(() => location.reload(), 1000);
     } catch (error) {
       console.error('Error al guardar prompt:', error);
       alert('Error al guardar el prompt');
