@@ -110,7 +110,7 @@ app.get('/test-db', (req, res) => {
 
 app.post('/guardar-prompt', upload.fields([
   { name: 'imagen', maxCount: 1 },
-  { name: 'cuadernillo', maxCount: 10 }
+  { name: 'cuadernillos', maxCount: 10 }
 ]), (req, res) => {
   const { nivel, eje, destinatario, prompt } = req.body;
   const imagen = req.files?.imagen?.[0]?.filename || '';
@@ -124,7 +124,7 @@ app.post('/guardar-prompt', upload.fields([
         return res.status(500).json({ error: 'Error al guardar el prompt' });
       }
       const promptId = this.lastID;
-      const cuadernillos = req.files?.cuadernillo || [];
+      const cuadernillos = req.files?.cuadernillos || [];
 
       cuadernillos.forEach(file => {
         const filePath = path.join(uploadPath, file.filename);
