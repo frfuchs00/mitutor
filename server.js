@@ -165,3 +165,18 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, 'localhost', () => console.log(`Servidor MiTutor corriendo en http://localhost:${PORT}`));
+// Nueva ruta para obtener cuadernillos asociados a un prompt
+app.get('/cuadernillos', (req, res) => {
+  const { prompt_id } = req.query;
+  db.all(
+    "SELECT filename FROM cuadernillos WHERE prompt_id = ?",
+    [prompt_id],
+    (err, rows) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al buscar cuadernillos' });
+      }
+      res.json(rows);
+    }
+  );
+});
