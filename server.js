@@ -7,6 +7,10 @@ const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
 app.get('/prompt', (req, res) => {
   const { nivel, eje, destinatario } = req.query;
   db.get(
