@@ -215,13 +215,16 @@
       } else {
         document.getElementById('imagenPreview').src = "image.png";
       }
-      if (data.cuadernillo) {
-        const nombreArchivo = data.cuadernillo.split('/').pop();
-        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillo: ' + nombreArchivo;
-        document.getElementById('cuadernilloLink').innerHTML = `📎 <a href="${data.cuadernillo}" target="_blank">Ver cuadernillo</a>`;
+      if (data.cuadernillos && data.cuadernillos.length > 0) {
+        const lista = data.cuadernillos.map(link => {
+          const nombre = link.split('/').pop();
+          return `<div>📎 <a href="${link}" target="_blank">${nombre}</a></div>`;
+        }).join('');
+        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillos:';
+        document.getElementById('cuadernilloLink').innerHTML = lista;
       } else {
         document.getElementById('nombreCuadernillo').textContent = '';
-        document.getElementById('cuadernilloLink').textContent = '';
+        document.getElementById('cuadernilloLink').innerHTML = '';
       }
     } catch (error) {
       document.getElementById('instrucciones').value = 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
