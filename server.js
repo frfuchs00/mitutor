@@ -15,34 +15,33 @@ app.get('/', (req, res) => {
 app.get('/prompt', (req, res) => {
   const { nivel, eje, destinatario } = req.query;
   console.log('GET /prompt', req.query);
+
   db.get(
-    "SELECT * FROM prompts WHERE nivel = ? AND eje = ? AND destinatario = ? ORDER BY id DESC LIMIT 1",
+    'SELECT * FROM prompts WHERE UPPER(nivel) = UPPER(?) AND UPPER(eje) = UPPER(?) AND UPPER(destinatario) = UPPER(?)',
     [nivel, eje, destinatario],
-    (err, row) => {
+    (err, prompt) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Error al buscar el prompt' });
+        return res.status(500).json({ error: 'Error en la base de datos' });
       }
-      if (!row) return res.status(404).json({ error: 'Prompt no encontrado' });
+
+      if (!prompt) {
+        return res.status(404).json({ error: 'Prompt no encontrado' });
+      }
 
       db.all(
-        "SELECT filename FROM cuadernillos WHERE prompt_id = ?",
-        [row.id],
-        (err2, cuadernillos) => {
-          if (err2) {
-            console.error(err2);
-            return res.status(500).json({ error: 'Error al buscar cuadernillos' });
+        'SELECT filename FROM cuadernillos WHERE prompt_id = ?',
+        [prompt.id],
+        (cuadErr, cuadernillos) => {
+          if (cuadErr) {
+            console.error(cuadErr);
+            return res.status(500).json({ error: 'Error al obtener cuadernillos' });
           }
 
-          const cuadernilloLinks = cuadernillos.map(c => ({
-            nombre: c.filename,
-            url: `/uploads/${c.filename}`
-          }));
-
           res.json({
-            ...row,
-            imagen: row.imagen ? `/uploads/${row.imagen}` : null,
-            cuadernillos: cuadernilloLinks
+            prompt: prompt.prompt,
+            imagen: prompt.imagen ? `/uploads/${prompt.imagen}` : null,
+            cuadernillos: cuadernillos.map(c => `/uploads/${c.filename}`)
           });
         }
       );
