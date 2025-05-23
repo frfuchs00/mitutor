@@ -14,14 +14,20 @@ app.get('/', (req, res) => {
 
 app.get('/prompt', (req, res) => {
   const { nivel, eje, destinatario } = req.query;
-  console.log('GET /prompt', req.query);
+  console.log('GET /prompt =>', nivel, eje, destinatario);
+  console.log(`Consulta SQL: SELECT * FROM prompts WHERE UPPER(nivel) = '${nivel.toUpperCase()}' AND UPPER(eje) = '${eje.toUpperCase()}' AND UPPER(destinatario) = '${destinatario.toUpperCase()}'`);
 
+  if (!nivel || !eje || !destinatario) {
+    return res.status(400).json({ error: 'Faltan parámetros' });
+  }
+
+  const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
   db.get(
     'SELECT * FROM prompts WHERE UPPER(nivel) = UPPER(?) AND UPPER(eje) = UPPER(?) AND UPPER(destinatario) = UPPER(?)',
     [nivel, eje, destinatario],
     (err, prompt) => {
       if (err) {
-        console.error(err);
+        console.error('Error al recuperar prompt:', err);
         return res.status(500).json({ error: 'Error en la base de datos' });
       }
 
@@ -29,19 +35,23 @@ app.get('/prompt', (req, res) => {
         return res.status(404).json({ error: 'Prompt no encontrado' });
       }
 
-      db.all(
+      const cuadernillos = [];
+      const cuadernilloDb = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
+      cuadernilloDb.all(
         'SELECT filename FROM cuadernillos WHERE prompt_id = ?',
         [prompt.id],
-        (cuadErr, cuadernillos) => {
-          if (cuadErr) {
-            console.error(cuadErr);
-            return res.status(500).json({ error: 'Error al obtener cuadernillos' });
+        (err2, rows) => {
+          cuadernilloDb.close();
+          if (!err2 && rows) {
+            for (const r of rows) {
+              cuadernillos.push('/uploads/' + r.filename);
+            }
           }
 
           res.json({
             prompt: prompt.prompt,
             imagen: prompt.imagen ? `/uploads/${prompt.imagen}` : null,
-            cuadernillos: cuadernillos.map(c => `/uploads/${c.filename}`)
+            cuadernillos
           });
         }
       );
@@ -58,6 +68,11 @@ app.post('/guardar-prompt', upload.fields([
 ]), (req, res) => {
   const { nivel, eje, destinatario, prompt } = req.body;
   const imagenFile = req.files['imagen'] ? req.files['imagen'][0].filename : null;
+  if (req.files['imagen']) {
+    console.log("Imagen subida:");
+    console.log("  Nombre original:", req.files['imagen'][0].originalname);
+    console.log("  Ruta almacenada:", req.files['imagen'][0].path);
+  }
   const cuadernillos = req.files['cuadernillos'] || [];
 
   db.run(
