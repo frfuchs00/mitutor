@@ -67,6 +67,9 @@
           <option value="Estudiantes">Estudiantes</option>
           <option value="Docentes">Docentes</option>
         </select>
+        <div class="mt-2">
+          <button class="btn btn-info" onclick="cargarPromptGuardado()">Mostrar Prompt</button>
+        </div>
       </div>
     </div>
     <!-- Imagen identificadora input ahora está incluido en el bloque drag-and-drop arriba -->
@@ -266,19 +269,7 @@ async function cargarPromptGuardado() {
       alert('Error al guardar el prompt');
     }
   }
-  // Llama a cargarPromptGuardado al cargar la página, asegurando que los selects estén listos
-    window.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        const nivel = document.getElementById('nivelSelect').value;
-        const eje = document.getElementById('ejeSelect').value;
-        const destinatario = document.getElementById('destinatarioSelect').value;
-
-        // Solo cargar si se tiene un prompt guardado conocido
-        if (!(nivel === "K3" && eje === "MAT" && destinatario === "Estudiantes")) {
-          cargarPromptGuardado();
-        }
-      }, 300);
-    });
+  // La carga del prompt ahora se hace manualmente con el botón "Mostrar Prompt"
   function mostrarImagenPreview(event) {
     const file = event.target.files[0];
     const preview = document.getElementById('imagenPreview');
