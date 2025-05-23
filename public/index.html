@@ -205,7 +205,7 @@
     const destinatario = document.getElementById('destinatarioSelect').value;
 
     try {
-      const response = await fetch(`/prompt?nivel=${nivel}&eje=${eje}&destinatario=${destinatario}`);
+      const response = await fetch(`/prompt?nivel=${encodeURIComponent(nivel)}&eje=${encodeURIComponent(eje)}&destinatario=${encodeURIComponent(destinatario)}`);
       if (!response.ok) throw new Error('No encontrado');
       const data = await response.json();
       document.getElementById('instrucciones').value = data.prompt || 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
