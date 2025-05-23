@@ -3,7 +3,7 @@ const app = express();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
-const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
+// const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 app.get('/prompt', (req, res) => {
   const { nivel, eje, destinatario } = req.query;
   console.log('GET /prompt =>', nivel, eje, destinatario);
-  console.log(`Consulta SQL: SELECT * FROM prompts WHERE UPPER(nivel) = '${nivel.toUpperCase()}' AND UPPER(eje) = '${eje.toUpperCase()}' AND UPPER(destinatario) = '${destinatario.toUpperCase()}'`);
+  console.log(`Consulta SQL: SELECT * FROM prompts WHERE UPPER(TRIM(nivel)) = UPPER(TRIM('${nivel}')) AND UPPER(TRIM(eje)) = UPPER(TRIM('${eje}')) AND UPPER(TRIM(destinatario)) = UPPER(TRIM('${destinatario}'))`);
 
   if (!nivel || !eje || !destinatario) {
     return res.status(400).json({ error: 'Faltan parámetros' });
@@ -23,8 +23,8 @@ app.get('/prompt', (req, res) => {
 
   const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
   db.get(
-    'SELECT * FROM prompts WHERE UPPER(nivel) = UPPER(?) AND UPPER(eje) = UPPER(?) AND UPPER(destinatario) = UPPER(?)',
-    [nivel, eje, destinatario],
+    'SELECT * FROM prompts WHERE UPPER(TRIM(nivel)) = UPPER(TRIM(?)) AND UPPER(TRIM(eje)) = UPPER(TRIM(?)) AND UPPER(TRIM(destinatario)) = UPPER(TRIM(?))',
+    [nivel.trim(), eje.trim(), destinatario.trim()],
     (err, prompt) => {
       if (err) {
         console.error('Error al recuperar prompt:', err);
@@ -36,12 +36,10 @@ app.get('/prompt', (req, res) => {
       }
 
       const cuadernillos = [];
-      const cuadernilloDb = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
-      cuadernilloDb.all(
+      db.all(
         'SELECT filename FROM cuadernillos WHERE prompt_id = ?',
         [prompt.id],
         (err2, rows) => {
-          cuadernilloDb.close();
           if (!err2 && rows) {
             for (const r of rows) {
               cuadernillos.push('/uploads/' + r.filename);
@@ -66,6 +64,7 @@ app.post('/guardar-prompt', upload.fields([
   { name: 'imagen', maxCount: 1 },
   { name: 'cuadernillos' }
 ]), (req, res) => {
+  const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
   const { nivel, eje, destinatario, prompt } = req.body;
   const imagenFile = req.files['imagen'] ? req.files['imagen'][0].filename : null;
   if (req.files['imagen']) {
