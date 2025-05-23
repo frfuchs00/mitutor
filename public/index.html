@@ -279,7 +279,14 @@
   }
   // Llama a cargarPromptGuardado al cargar la página, asegurando que los selects estén listos
   window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(cargarPromptGuardado, 300);
+    setTimeout(() => {
+      const nivel = document.getElementById('nivelSelect').value;
+      const eje = document.getElementById('ejeSelect').value;
+      const destinatario = document.getElementById('destinatarioSelect').value;
+      if (nivel && eje && destinatario) {
+        cargarPromptGuardado();
+      }
+    }, 300);
   });
 
   function mostrarImagenPreview(event) {
