@@ -276,8 +276,10 @@
       alert('Error al guardar el prompt');
     }
   }
-  // Llama a cargarPromptGuardado al cargar la página
-  window.addEventListener('DOMContentLoaded', cargarPromptGuardado);
+  // Llama a cargarPromptGuardado al cargar la página, asegurando que los selects estén listos
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(cargarPromptGuardado, 300);
+  });
 
   function mostrarImagenPreview(event) {
     const file = event.target.files[0];
