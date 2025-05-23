@@ -14,6 +14,7 @@ app.get('/', (req, res) => {
 
 app.get('/prompt', (req, res) => {
   const { nivel, eje, destinatario } = req.query;
+  console.log('GET /prompt', req.query);
   db.get(
     "SELECT * FROM prompts WHERE nivel = ? AND eje = ? AND destinatario = ? ORDER BY id DESC LIMIT 1",
     [nivel, eje, destinatario],
