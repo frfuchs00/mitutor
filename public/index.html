@@ -199,38 +199,27 @@
     historialesPorNivel[nivel].mensajes.forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
   }
 
-  async function cargarPromptGuardado() {
-    const nivel = document.getElementById('nivelSelect').value;
-    const eje = document.getElementById('ejeSelect').value;
-    const destinatario = document.getElementById('destinatarioSelect').value;
 
-    try {
-      const response = await fetch(`/prompt?nivel=${encodeURIComponent(nivel)}&eje=${encodeURIComponent(eje)}&destinatario=${encodeURIComponent(destinatario)}`);
-     //
-      if (!response.ok) throw new Error('No encontrado');
-      const data = await response.json();
-      document.getElementById('instrucciones').value = data.prompt || 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
-      if (data.imagen) {
-        document.getElementById('imagenPreview').src = data.imagen;
-      } else {
-        document.getElementById('imagenPreview').src = "image.png";
-      }
-      if (data.cuadernillos && data.cuadernillos.length > 0) {
-        const lista = data.cuadernillos.map(link => {
-          const nombre = link.split('/').pop();
-          return `<div>📎 <a href="${link}" target="_blank">${nombre}</a></div>`;
-        }).join('');
-        document.getElementById('nombreCuadernillo').textContent = 'Cuadernillos:';
-        document.getElementById('cuadernilloLink').innerHTML = lista;
-      } else {
-        document.getElementById('nombreCuadernillo').textContent = '';
-        document.getElementById('cuadernilloLink').innerHTML = '';
-      }
-    } catch (error) {
-      document.getElementById('instrucciones').value = 'Tu nombre es MiTutor. Sos un tutor educativo que guía con preguntas. Usás el método socrático. No das respuestas directas. Fomentás el pensamiento crítico.';
-      document.getElementById('nombreCuadernillo').textContent = '';
-    }
+async function cargarPromptGuardado() {
+  const nivel = document.getElementById('nivelSelect').value;
+  const eje = document.getElementById('ejeSelect').value;
+  const destinatario = document.getElementById('destinatarioSelect').value;
+
+  if (!nivel || !eje || !destinatario) {
+    console.warn('Faltan datos para cargar el prompt:', { nivel, eje, destinatario });
+    return; // No continúa si falta alguno
   }
+
+  try {
+    const response = await fetch(`/prompt?nivel=${encodeURIComponent(nivel)}&eje=${encodeURIComponent(eje)}&destinatario=${encodeURIComponent(destinatario)}`);
+    if (!response.ok) throw new Error('No encontrado');
+    const data = await response.json();
+    // ...
+  } catch (error) {
+    console.error('Error al cargar prompt:', error);
+  }
+}
+
 
   async function guardarPrompt() {
     const nivel = document.getElementById('nivelSelect').value;
@@ -261,7 +250,7 @@
         body: formData
       });
       const result = await response.json();
-      alert(result.message || 'Prompt guardado correctamente');
+      //alert(result.message || 'Prompt guardado correctamente');
       if (result.cuadernillos && result.cuadernillos.length > 0) {
         const lista = result.cuadernillos.map(link => {
           const nombre = link.split('/').pop();
