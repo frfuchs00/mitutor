@@ -19,16 +19,16 @@ app.get('/prompt', (req, res) => {
     return res.status(400).json({ error: 'Faltan parámetros' });
   }
 
-  const nivelNorm = nivel.trim();
-  const ejeNorm = eje.trim();
-  const destinatarioNorm = destinatario.trim();
+  const nivelNorm = nivel.trim().toUpperCase();
+  const ejeNorm = eje.trim().toUpperCase();
+  const destinatarioNorm = destinatario.trim().toUpperCase();
   console.log('GET /prompt =>', nivelNorm, ejeNorm, destinatarioNorm);
-  console.log(`Consulta SQL: SELECT * FROM prompts WHERE UPPER(TRIM(nivel)) = UPPER(TRIM('${nivelNorm}')) AND UPPER(TRIM(eje)) = UPPER(TRIM('${ejeNorm}')) AND UPPER(TRIM(destinatario)) = UPPER(TRIM('${destinatarioNorm}'))`);
+  console.log(`Consulta SQL: SELECT * FROM prompts WHERE UPPER(TRIM(nivel)) = ? AND UPPER(TRIM(eje)) = ? AND UPPER(TRIM(destinatario)) = ?`);
   console.log('Parámetros normalizados:', [nivelNorm, ejeNorm, destinatarioNorm]);
 
   const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
   db.get(
-    'SELECT * FROM prompts WHERE UPPER(TRIM(nivel)) = UPPER(TRIM(?)) AND UPPER(TRIM(eje)) = UPPER(TRIM(?)) AND UPPER(TRIM(destinatario)) = UPPER(TRIM(?))',
+    'SELECT * FROM prompts WHERE UPPER(TRIM(nivel)) = ? AND UPPER(TRIM(eje)) = ? AND UPPER(TRIM(destinatario)) = ?',
     [nivelNorm, ejeNorm, destinatarioNorm],
     (err, prompt) => {
       if (err) {

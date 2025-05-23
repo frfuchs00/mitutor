@@ -28,7 +28,7 @@
 <main>
   <div class="container">
     <div class="row mb-3">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="nivelSelect" class="form-label">Nivel</label>
         <select id="nivelSelect" class="form-select" ">
           <option value="K3">K3</option>
@@ -48,7 +48,7 @@
           <option value="12N">12N</option>
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="ejeSelect" class="form-label">Eje</label>
         <select id="ejeSelect" class="form-select" >
           <option value="MAT">MAT</option>
@@ -61,15 +61,15 @@
           <option value="PROF">PROF</option>
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="destinatarioSelect" class="form-label">Destinatario</label>
         <select id="destinatarioSelect" class="form-select">
           <option value="Estudiantes">Estudiantes</option>
           <option value="Docentes">Docentes</option>
         </select>
-        <div class="mt-2">
-          <button class="btn btn-info" onclick="cargarPromptGuardado()">Mostrar Prompt</button>
-        </div>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-info w-100" onclick="cargarPromptGuardado()">Mostrar Prompt</button>
       </div>
     </div>
     <!-- Imagen identificadora input ahora está incluido en el bloque drag-and-drop arriba -->
@@ -217,7 +217,21 @@ async function cargarPromptGuardado() {
     const response = await fetch(`/prompt?nivel=${encodeURIComponent(nivel)}&eje=${encodeURIComponent(eje)}&destinatario=${encodeURIComponent(destinatario)}`);
     if (!response.ok) throw new Error('No encontrado');
     const data = await response.json();
-    // ...
+    console.log("Prompt cargado:", data);
+    if (data.prompt) {
+      document.getElementById('instrucciones').value = data.prompt;
+    }
+    if (data.imagen) {
+      document.getElementById('imagenPreview').src = data.imagen;
+    }
+    if (data.cuadernillos && Array.isArray(data.cuadernillos)) {
+      const lista = data.cuadernillos.map(link => {
+        const nombre = link.split('/').pop();
+        return `<div>📎 <a href="${link}" target="_blank">${nombre}</a></div>`;
+      }).join('');
+      document.getElementById('nombreCuadernillo').textContent = 'Cuadernillos:';
+      document.getElementById('cuadernilloLink').innerHTML = lista;
+    }
   } catch (error) {
     console.error('Error al cargar prompt:', error);
   }
