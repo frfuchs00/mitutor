@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mammoth = require('mammoth');
 const express = require('express');
 const app = express();
@@ -6,6 +7,9 @@ const path = require('path');
 const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const textract = require('textract');
+const { OpenAI } = require('openai');
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, project: process.env.OPENAI_PROJECT_ID });
+const OPENAI_PROJECT_ID = process.env.OPENAI_PROJECT_ID;
 // const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -54,7 +58,8 @@ app.get('/prompt', (req, res) => {
               if (fs.existsSync(fullPath)) {
                 return {
                   nombre: r.originalname,
-                  url: `/uploads/${r.filename}`
+                  url: `/uploads/${r.filename}`,
+                  filename: r.filename
                 };
               }
               return null;
@@ -98,6 +103,26 @@ app.post('/guardar-prompt', upload.fields([
   }
   const cuadernillos = req.files['cuadernillos'] || [];
 
+  async function subirArchivoAProject(filepath, filename) {
+    try {
+      const file = await openai.files.create({
+        file: fs.createReadStream(filepath),
+        purpose: 'assistants'
+      });
+
+      await openai.beta.projects.files.create(
+        OPENAI_PROJECT_ID,
+        { file_id: file.id }
+      );
+
+      console.log(`Archivo subido a Project: ${filename} → ${file.id}`);
+      return file.id;
+    } catch (error) {
+      console.error(`Error al subir archivo ${filename} a OpenAI:`, error.message);
+      return null;
+    }
+  }
+
   db.run(
     "INSERT INTO prompts (nivel, eje, destinatario, prompt, imagen) VALUES (?, ?, ?, ?, ?)",
     [nivel, eje, destinatario, prompt, imagenFile],
@@ -117,7 +142,10 @@ app.post('/guardar-prompt', upload.fields([
           const filepath = file.path;
 
           const guardarCuadernillo = (content) => {
-            insertCuadernillo.run(promptId, file.filename, file.originalname, content || '', () => resolve());
+            // Subir archivo a OpenAI Project antes de guardar en base de datos
+            subirArchivoAProject(filepath, file.originalname).then(() => {
+              insertCuadernillo.run(promptId, file.filename, file.originalname, content || '', () => resolve());
+            });
           };
 
           if (ext === '.txt') {
