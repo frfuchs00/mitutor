@@ -1,8 +1,11 @@
+const mammoth = require('mammoth');
 const express = require('express');
 const app = express();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const textract = require('textract');
 // const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -40,22 +43,38 @@ app.get('/prompt', (req, res) => {
         return res.status(404).json({ error: 'Prompt no encontrado' });
       }
 
-      const cuadernillos = [];
       db.all(
-        'SELECT filename FROM cuadernillos WHERE prompt_id = ?',
+        'SELECT filename, originalname FROM cuadernillos WHERE prompt_id = ?',
         [prompt.id],
         (err2, rows) => {
-          if (!err2 && rows) {
-            for (const r of rows) {
-              cuadernillos.push('/uploads/' + r.filename);
+          let cuadernillos = [];
+          if (rows && rows.length) {
+            cuadernillos = rows.map(r => {
+              const fullPath = path.join(__dirname, 'uploads', r.filename);
+              if (fs.existsSync(fullPath)) {
+                return {
+                  nombre: r.originalname,
+                  url: `/uploads/${r.filename}`
+                };
+              }
+              return null;
+            }).filter(Boolean);
+          }
+
+          let imagenUrl = null;
+          if (prompt.imagen) {
+            const imagePath = path.join(__dirname, 'uploads', prompt.imagen);
+            if (fs.existsSync(imagePath)) {
+              imagenUrl = `/uploads/${prompt.imagen}`;
             }
           }
 
           res.json({
             prompt: prompt.prompt,
-            imagen: prompt.imagen ? `/uploads/${prompt.imagen}` : null,
+            imagen: imagenUrl,
             cuadernillos
           });
+          db.close();
         }
       );
     }
@@ -90,24 +109,96 @@ app.post('/guardar-prompt', upload.fields([
 
       const promptId = this.lastID;
 
-      const insertCuadernillo = db.prepare("INSERT INTO cuadernillos (prompt_id, filename, content) VALUES (?, ?, ?)");
+      const insertCuadernillo = db.prepare("INSERT INTO cuadernillos (prompt_id, filename, originalname, content) VALUES (?, ?, ?, ?)");
 
-      cuadernillos.forEach(file => {
-        const ext = path.extname(file.originalname).toLowerCase();
-        let content = '';
+      const promises = cuadernillos.map(file => {
+        return new Promise((resolve) => {
+          const ext = path.extname(file.originalname).toLowerCase();
+          const filepath = file.path;
 
-        try {
-          content = fs.readFileSync(file.path, 'utf8');
-        } catch (readErr) {
-          console.error(`Error al leer ${file.originalname}:`, readErr.message);
-        }
+          const guardarCuadernillo = (content) => {
+            insertCuadernillo.run(promptId, file.filename, file.originalname, content || '', () => resolve());
+          };
 
-        insertCuadernillo.run(promptId, file.filename, content);
+          if (ext === '.txt') {
+            try {
+              const content = fs.readFileSync(filepath, 'utf8');
+              guardarCuadernillo(content);
+            } catch (err) {
+              console.error(`Error al leer TXT ${file.originalname}:`, err.message);
+              guardarCuadernillo('');
+            }
+          } else if (ext === '.pdf') {
+            try {
+              const dataBuffer = fs.readFileSync(filepath);
+              pdfParse(dataBuffer).then(data => {
+                guardarCuadernillo(data.text);
+              }).catch(err => {
+                console.error(`Error al procesar PDF ${file.originalname}:`, err.message);
+                guardarCuadernillo('');
+              });
+            } catch (err) {
+              console.error(`Error al leer PDF ${file.originalname}:`, err.message);
+              guardarCuadernillo('');
+            }
+          } else if (ext === '.docx') {
+            mammoth.extractRawText({ path: filepath })
+              .then(result => {
+                guardarCuadernillo(result.value);
+              })
+              .catch(err => {
+                console.error(`Error al procesar DOCX ${file.originalname}:`, err.message);
+                guardarCuadernillo('');
+              });
+          } else if (ext === '.doc') {
+            console.warn(`Archivo .doc no soportado: ${file.originalname}`);
+            guardarCuadernillo('');
+          } else {
+            console.warn(`Tipo de archivo no soportado: ${ext}`);
+            guardarCuadernillo('');
+          }
+        });
       });
 
-      insertCuadernillo.finalize();
+      Promise.all(promises).then(() => {
+        insertCuadernillo.finalize();
+        res.json({ success: true });
+      });
+    }
+  );
+  // === Copia de seguridad de APKs instalados en la TV ===
+  // Antes de eliminar aplicaciones, es recomendable copiar los APKs actuales
+  // para poder restaurarlos si fuera necesario. Crear un archivo `backup_apks.bat` con el siguiente contenido:
+  /*
+  @echo off
+  adb shell pm list packages -f > paquetes.txt
+  for /f "tokens=2 delims==:" %%i in ('findstr /R "package:" paquetes.txt') do (
+      adb pull %%i backups_apk\
+  )
+  echo Copia finalizada. Los APKs estan en la carpeta backups_apk
+  pause
+  */
+  // Ejecutar este script en la terminal de Windows desde la carpeta donde se encuentra ADB.
+  // Ejemplo para batch automático:
+  // (archivo limpiar.bat)
+  // ...
+});
 
-      res.json({ success: true });
+app.get('/cuadernillos/:prompt_id', (req, res) => {
+  const promptId = parseInt(req.params.prompt_id, 10);
+  if (!promptId) return res.status(400).json({ error: 'ID inválido' });
+
+  const db = new sqlite3.Database(path.join(__dirname, 'prompts.db'));
+  db.all(
+    'SELECT content FROM cuadernillos WHERE prompt_id = ?',
+    [promptId],
+    (err, rows) => {
+      if (err) {
+        console.error('Error al leer cuadernillos:', err);
+        return res.status(500).json({ error: 'Error al leer cuadernillos' });
+      }
+      const contenidos = rows.map(r => r.content).filter(Boolean);
+      res.json({ contenidos });
     }
   );
 });

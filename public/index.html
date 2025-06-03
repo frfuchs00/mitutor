@@ -236,8 +236,10 @@ async function cargarPromptGuardado() {
     }
     if (data.cuadernillos && Array.isArray(data.cuadernillos)) {
       const lista = data.cuadernillos.map(link => {
-        const nombre = link.split('/').pop();
-        return `<div>📎 <a href="${link}" target="_blank">${nombre}</a></div>`;
+        const url = typeof link === 'string' ? link : link.url;
+        const nombre = typeof link === 'string' ? link.split('/').pop() : link.nombre || url.split('/').pop();
+        const safeNombre = encodeURIComponent(nombre);
+        return `<div>📎 <a href="${url}" target="_blank" download="${safeNombre}">${nombre}</a></div>`;
       }).join('');
       document.getElementById('nombreCuadernillo').textContent = 'Cuadernillos:';
       document.getElementById('cuadernilloLink').innerHTML = lista;
@@ -280,8 +282,9 @@ async function cargarPromptGuardado() {
       //alert(result.message || 'Prompt guardado correctamente');
       if (result.cuadernillos && result.cuadernillos.length > 0) {
         const lista = result.cuadernillos.map(link => {
-          const nombre = link.split('/').pop();
-          return `<div>📎 <a href="${link}" target="_blank">${nombre}</a></div>`;
+          const url = typeof link === 'string' ? link : link.url;
+          const nombre = typeof link === 'string' ? link.split('/').pop() : link.nombre || url.split('/').pop();
+          return `<div>📎 <a href="${url}" target="_blank">${nombre}</a></div>`;
         }).join('');
         document.getElementById('nombreCuadernillo').textContent = 'Cuadernillos:';
         document.getElementById('cuadernilloLink').innerHTML = lista;
